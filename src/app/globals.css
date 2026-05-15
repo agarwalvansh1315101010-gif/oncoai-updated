@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Medical Blue Palette */
+    --background: 210 30% 98%;
+    --foreground: 220 40% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 40% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 40% 13%;
+    --primary: 220 78% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 30% 93%;
+    --secondary-foreground: 220 40% 20%;
+    --muted: 210 25% 95%;
+    --muted-foreground: 215 16% 50%;
+    --accent: 180 65% 35%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 78% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 25% 88%;
+    --input: 214 25% 88%;
+    --ring: 220 78% 40%;
+    --radius: 0.75rem;
+
+    /* Medical-specific colors */
+    --medical-teal: 175 65% 38%;
+    --medical-teal-light: 175 65% 95%;
+    --medical-blue-light: 220 78% 96%;
+    --medical-green: 145 60% 38%;
+    --medical-green-light: 145 60% 95%;
+    --medical-amber: 38 90% 48%;
+    --medical-amber-light: 38 90% 95%;
+    --medical-red: 0 78% 55%;
+    --medical-red-light: 0 78% 96%;
+    --sidebar-bg: 220 40% 13%;
+    --sidebar-text: 210 30% 88%;
+    --sidebar-accent: 220 78% 60%;
+  }
+
+  .dark {
+    --background: 220 40% 8%;
+    --foreground: 210 30% 95%;
+    --card: 220 35% 12%;
+    --card-foreground: 210 30% 95%;
+    --popover: 220 35% 12%;
+    --popover-foreground: 210 30% 95%;
+    --primary: 220 78% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 30% 18%;
+    --secondary-foreground: 210 30% 85%;
+    --muted: 220 30% 16%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 180 65% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 30% 20%;
+    --input: 220 30% 20%;
+    --ring: 220 78% 55%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .medical-card {
+    @apply bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer;
+  }
+
+  .sidebar-nav-item.active {
+    @apply bg-white/15 text-white;
+  }
+
+  .sidebar-nav-item:not(.active) {
+    @apply text-slate-300 hover:bg-white/10 hover:text-white;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .status-pending {
+    @apply bg-amber-50 text-amber-700 border border-amber-200;
+  }
+
+  .status-answered {
+    @apply bg-green-50 text-green-700 border border-green-200;
+  }
+
+  .status-closed {
+    @apply bg-slate-100 text-slate-600 border border-slate-200;
+  }
+
+  .metric-card {
+    @apply bg-white rounded-2xl border border-slate-100 p-6 shadow-sm;
+  }
+
+  .chat-bubble-patient {
+    @apply bg-blue-600 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm max-w-xs ml-auto;
+  }
+
+  .chat-bubble-doctor {
+    @apply bg-slate-100 text-slate-800 rounded-2xl rounded-bl-sm px-4 py-3 text-sm max-w-xs;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-medical-gradient {
+    background: linear-gradient(135deg, hsl(220, 78%, 40%) 0%, hsl(180, 65%, 35%) 100%);
+  }
+
+  .bg-sidebar {
+    background: linear-gradient(180deg, hsl(220, 40%, 14%) 0%, hsl(220, 45%, 10%) 100%);
+  }
+
+  .hover\:bg-white\/10:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+}
