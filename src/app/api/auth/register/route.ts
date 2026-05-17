@@ -19,11 +19,18 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(password, 10)
 
+    // Generate secure 6-digit OTP code
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         role,
+        isVerified: false,
+        verificationCode: otpCode,
+        verificationExpires: otpExpiry
       }
     })
 
@@ -58,19 +65,22 @@ export async function POST(req: Request) {
       }
     })
 
-    const token = signJwt({ id: user.id, role: user.role, email: user.email })
+    // Console-log the code so it is easily retrieved in local development output
+    console.log(`
+┌────────────────────────────────────────────────────────┐
+│  ONCOAI PORTAL — OTP REGISTRATION DISPATCH             │
+│                                                        │
+│  Recipient: ${email}                               │
+│  Verification Code: ${otpCode}                            │
+│  Expires: 15 minutes                                   │
+└────────────────────────────────────────────────────────┘
+    `)
 
-    const response = NextResponse.json({ success: true, role: user.role })
-    response.cookies.set({
-      name: 'token',
-      value: token,
-      httpOnly: true,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 // 1 day
+    return NextResponse.json({ 
+      success: true, 
+      verificationRequired: true, 
+      email: user.email 
     })
-
-    return response
   } catch (error) {
     console.error('Registration error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

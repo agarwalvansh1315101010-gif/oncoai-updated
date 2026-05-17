@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { jwtVerify } from 'jose'
-import { decrypt, encrypt } from '@/lib/crypto'
+import { decrypt } from '@/lib/crypto'
 
 async function getPatientFromToken(req: Request) {
   const token = req.headers.get('cookie')?.split('token=')[1]?.split(';')[0]

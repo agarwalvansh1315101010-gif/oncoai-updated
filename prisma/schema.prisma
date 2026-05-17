@@ -3,17 +3,20 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id             String          @id @default(uuid())
-  email          String          @unique
-  passwordHash   String
-  role           String          @default("PATIENT")
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                  String          @id @default(uuid())
+  email               String          @unique
+  passwordHash        String
+  role                String          @default("PATIENT")
+  isVerified          Boolean         @default(false)
+  verificationCode    String?
+  verificationExpires DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
   
   patientProfile PatientProfile?
   doctorProfile  DoctorProfile?
@@ -36,6 +39,8 @@ model PatientProfile {
   queries          Query[]
   appointments     Appointment[]
   aiReports        AiReport[]
+  latestInsight    String?
+  reportVectors    PatientReportVector[]
 }
 
 model DoctorProfile {
@@ -142,5 +147,14 @@ model AuditLog {
   resourceId       String?
   details          String?
   ipAddress        String?
+  createdAt        DateTime       @default(now())
+}
+
+model PatientReportVector {
+  id               String         @id @default(uuid())
+  patientId        String
+  patient          PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  content          String
+  embedding        String
   createdAt        DateTime       @default(now())
 }

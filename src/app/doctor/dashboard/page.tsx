@@ -7,20 +7,90 @@ import { Topbar } from '@/components/layout/Topbar'
 import { format } from 'date-fns'
 import {
   Users, FileText, MessageSquare, Calendar, Brain, Send,
-  ChevronRight, AlertTriangle, CheckCircle, Clock, Video, MapPin, User, Bot, Eye
+  ChevronRight, AlertTriangle, Clock, Video, MapPin, User, Bot
 } from 'lucide-react'
+
+interface DoctorProfile {
+  firstName: string;
+  lastName: string;
+  specialization: string;
+  licenseNumber: string;
+}
+
+interface Document {
+  id: string;
+  fileName: string;
+  uploadedAt: string;
+}
+
+interface Response {
+  id: string;
+  encryptedMessage: string;
+  createdAt: string;
+}
+
+interface Query {
+  id: string;
+  subject: string;
+  status: string;
+  createdAt: string;
+  encryptedMessage: string;
+  responses?: Response[];
+  patient: Patient;
+}
+
+interface Appointment {
+  id: string;
+  scheduledAt: string;
+  type: string;
+  status: string;
+  notes?: string;
+  patient: Patient;
+}
+
+interface Report {
+  id: string;
+  riskLevel: string;
+  status: string;
+  createdAt: string;
+  summary: string;
+  findings: string;
+  recommendations: string;
+  doctorNotes?: string;
+  patient: Patient;
+}
+
+interface Patient {
+  id: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  documents?: Document[];
+  queries?: Omit<Query, 'patient'>[];
+  appointments?: Omit<Appointment, 'patient'>[];
+  aiReports?: Omit<Report, 'patient'>[];
+}
+
+interface DoctorData {
+  doctor: DoctorProfile;
+  patients: Patient[];
+}
 
 export default function DoctorDashboard() {
   const router = useRouter()
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<DoctorData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
-  const [selectedPatient, setSelectedPatient] = useState<any>(null)
-  const [selectedQuery, setSelectedQuery] = useState<any>(null)
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+  const [selectedQuery, setSelectedQuery] = useState<Query | null>(null)
   const [replyText, setReplyText] = useState('')
   const [sending, setSending] = useState(false)
+  const [editingNotes, setEditingNotes] = useState<Record<string, string>>({})
+  const [savingNotes, setSavingNotes] = useState<string | null>(null)
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   const fetchData = async () => {
     try {
@@ -29,6 +99,24 @@ export default function DoctorDashboard() {
       setData(await res.json())
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
+  }
+
+  const saveReportNotes = async (reportId: string) => {
+    const notes = editingNotes[reportId]
+    if (notes === undefined) return
+    setSavingNotes(reportId)
+    try {
+      await fetch('/api/doctor/report/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId, doctorNotes: notes })
+      })
+      await fetchData()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSavingNotes(null)
+    }
   }
 
   const handleReply = async () => {
@@ -55,11 +143,11 @@ export default function DoctorDashboard() {
 
   const doctor = data?.doctor
   const patients = data?.patients || []
-  const allQueries = patients.flatMap((p: any) => p.queries.map((q: any) => ({ ...q, patient: p })))
-  const pendingQueries = allQueries.filter((q: any) => q.status === 'PENDING')
-  const allAppointments = patients.flatMap((p: any) => (p.appointments || []).map((a: any) => ({ ...a, patient: p })))
-  const upcomingAppts = allAppointments.filter((a: any) => new Date(a.scheduledAt) >= new Date()).sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
-  const allReports = patients.flatMap((p: any) => (p.aiReports || []).map((r: any) => ({ ...r, patient: p })))
+  const allQueries = patients.flatMap((p: Patient) => (p.queries || []).map((q: Omit<Query, 'patient'>) => ({ ...q, patient: p }))) as Query[]
+  const pendingQueries = allQueries.filter((q: Query) => q.status === 'PENDING')
+  const allAppointments = patients.flatMap((p: Patient) => (p.appointments || []).map((a: Omit<Appointment, 'patient'>) => ({ ...a, patient: p }))) as Appointment[]
+  const upcomingAppts = allAppointments.filter((a: Appointment) => new Date(a.scheduledAt) >= new Date()).sort((a: Appointment, b: Appointment) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+  const allReports = patients.flatMap((p: Patient) => (p.aiReports || []).map((r: Omit<Report, 'patient'>) => ({ ...r, patient: p }))) as Report[]
 
   const metrics = [
     { label: 'Total Patients', value: patients.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -111,7 +199,7 @@ export default function DoctorDashboard() {
                     <button onClick={() => setActiveTab('chat')} className="text-xs text-primary font-medium hover:underline">View All →</button>
                   </div>
                   <div className="divide-y divide-slate-50">
-                    {pendingQueries.slice(0, 5).map((q: any) => (
+                    {pendingQueries.slice(0, 5).map((q: Query) => (
                       <div key={q.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer" onClick={() => { setActiveTab('chat'); setSelectedQuery(q) }}>
                         <div><p className="text-sm font-medium text-slate-700">{q.subject}</p><p className="text-xs text-slate-400 mt-0.5">{q.patient.firstName} {q.patient.lastName}</p></div>
                         <span className="status-badge status-pending">PENDING</span>
@@ -125,7 +213,7 @@ export default function DoctorDashboard() {
                 <div className="medical-card overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100"><h3 className="text-sm font-bold text-slate-800">Upcoming Appointments</h3></div>
                   <div className="divide-y divide-slate-50">
-                    {upcomingAppts.slice(0, 3).map((a: any) => (
+                    {upcomingAppts.slice(0, 3).map((a: Appointment) => (
                       <div key={a.id} className="px-6 py-4 flex items-center gap-4">
                         <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 shrink-0">
                           {a.type === 'VIDEO' ? <Video className="w-4 h-4 text-blue-600" /> : <MapPin className="w-4 h-4 text-blue-600" />}
@@ -143,7 +231,7 @@ export default function DoctorDashboard() {
           {/* PATIENTS LIST */}
           {activeTab === 'patients' && !selectedPatient && (
             <div className="space-y-4 animate-slide-up">
-              {patients.map((p: any) => (
+              {patients.map((p: Patient) => (
                 <div key={p.id} onClick={() => setSelectedPatient(p)} className="medical-card p-6 flex items-center gap-5 cursor-pointer hover:border-blue-200 transition-all">
                   <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 font-bold text-sm shrink-0">{p.firstName[0]}{p.lastName[0]}</div>
                   <div className="flex-1">
@@ -175,7 +263,7 @@ export default function DoctorDashboard() {
               <div className="medical-card overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100"><h3 className="text-sm font-bold text-slate-800">Uploaded Documents</h3></div>
                 <div className="divide-y divide-slate-50">
-                  {(selectedPatient.documents || []).map((d: any) => (
+                  {(selectedPatient.documents || []).map((d: Document) => (
                     <div key={d.id} className="px-6 py-3 flex items-center gap-3"><FileText className="w-4 h-4 text-red-500" /><span className="text-sm text-slate-700">{d.fileName}</span><span className="text-xs text-slate-400 ml-auto">{format(new Date(d.uploadedAt), 'MMM d, yyyy')}</span></div>
                   ))}
                   {(!selectedPatient.documents || selectedPatient.documents.length === 0) && <p className="px-6 py-4 text-sm text-slate-400">No documents uploaded.</p>}
@@ -187,7 +275,7 @@ export default function DoctorDashboard() {
           {/* AI REPORTS */}
           {activeTab === 'reports' && (
             <div className="space-y-6 animate-slide-up">
-              {allReports.length > 0 ? allReports.map((r: any) => (
+              {allReports.length > 0 ? allReports.map((r: Report) => (
                 <div key={r.id} className="medical-card overflow-hidden">
                   <div className={`p-5 border-b flex items-center justify-between ${r.riskLevel === 'HIGH' ? 'bg-red-50 border-red-100' : r.riskLevel === 'LOW' ? 'bg-green-50 border-green-100' : 'bg-amber-50 border-amber-100'}`}>
                     <div className="flex items-center gap-3">
@@ -199,10 +287,29 @@ export default function DoctorDashboard() {
                     </div>
                     <span className={`status-badge ${r.status === 'READY' ? 'status-answered' : 'status-pending'}`}>{r.status}</span>
                   </div>
-                  <div className="p-6 space-y-4">
+                  <div className="p-6 space-y-6">
                     <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Summary</p><p className="text-sm text-slate-700">{r.summary}</p></div>
                     <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Findings</p><div className="bg-slate-50 rounded-xl p-4"><p className="text-sm text-slate-700 whitespace-pre-line">{r.findings}</p></div></div>
                     <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">AI Recommendations</p><div className="bg-blue-50 rounded-xl p-4 border border-blue-100"><p className="text-sm text-blue-800 whitespace-pre-line">{r.recommendations}</p></div></div>
+                    
+                    {/* Oncologist Secondary Notes Input */}
+                    <div className="pt-4 border-t border-slate-100 space-y-3 text-left">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Oncologist Clinical Vetting & Notes</p>
+                      <textarea
+                        value={editingNotes[r.id] !== undefined ? editingNotes[r.id] : r.doctorNotes || ''}
+                        onChange={(e) => setEditingNotes(prev => ({ ...prev, [r.id]: e.target.value }))}
+                        placeholder="Add secondary professional opinion, clinical treatment overrides, or confirmation remarks for the patient..."
+                        className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-semibold"
+                        rows={3}
+                      />
+                      <button
+                        onClick={() => saveReportNotes(r.id)}
+                        disabled={savingNotes === r.id || editingNotes[r.id] === undefined}
+                        className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white text-xs font-black uppercase tracking-widest transition-all"
+                      >
+                        {savingNotes === r.id ? 'Saving notes...' : 'Save & Publish Notes'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )) : <div className="text-center py-20 text-slate-400 text-sm">No AI reports available.</div>}
@@ -216,7 +323,7 @@ export default function DoctorDashboard() {
               <div className="w-72 shrink-0 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
                 <div className="p-4 border-b border-slate-100"><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">All Patient Queries</p></div>
                 <div className="flex-1 overflow-y-auto">
-                  {allQueries.map((q: any) => (
+                  {allQueries.map((q: Query) => (
                     <button key={q.id} onClick={() => setSelectedQuery(q)} className={`w-full text-left p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors ${selectedQuery?.id === q.id ? 'bg-blue-50' : ''}`}>
                       <p className="text-xs font-bold text-slate-800 truncate">{q.subject}</p>
                       <p className="text-xs text-slate-500 mt-0.5">{q.patient.firstName} {q.patient.lastName}</p>
@@ -241,7 +348,7 @@ export default function DoctorDashboard() {
                         <div><div className="chat-bubble-doctor">{selectedQuery.encryptedMessage}</div><p className="text-xs text-slate-400 mt-1">Patient · {format(new Date(selectedQuery.createdAt), 'h:mm a')}</p></div>
                       </div>
                       {/* Responses */}
-                      {selectedQuery.responses?.map((r: any) => (
+                      {selectedQuery.responses?.map((r: Response) => (
                         <div key={r.id} className="flex justify-end gap-3">
                           <div className="flex flex-col items-end"><div className="chat-bubble-patient">{r.encryptedMessage}</div><p className="text-xs text-slate-400 mt-1">You · {format(new Date(r.createdAt), 'h:mm a')}</p></div>
                           <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center shrink-0"><Bot className="w-4 h-4 text-white" /></div>
@@ -273,7 +380,7 @@ export default function DoctorDashboard() {
                 <div>
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Upcoming</h3>
                   <div className="space-y-3">
-                    {upcomingAppts.map((a: any) => (
+                    {upcomingAppts.map((a: Appointment) => (
                       <div key={a.id} className="medical-card p-5 flex items-center gap-4">
                         <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-medical-gradient text-white shrink-0">
                           {a.type === 'VIDEO' ? <Video className="w-5 h-5" /> : <MapPin className="w-5 h-5" />}
@@ -284,7 +391,7 @@ export default function DoctorDashboard() {
                             <span className="flex items-center gap-1 text-xs text-slate-500"><Calendar className="w-3 h-3" />{format(new Date(a.scheduledAt), 'MMMM d, yyyy')}</span>
                             <span className="flex items-center gap-1 text-xs text-slate-500"><Clock className="w-3 h-3" />{format(new Date(a.scheduledAt), 'h:mm a')}</span>
                           </div>
-                          {a.notes && <p className="text-xs text-slate-400 mt-1 italic">"{a.notes}"</p>}
+                          {a.notes && <p className="text-xs text-slate-400 mt-1 italic">&quot;{a.notes}&quot;</p>}
                         </div>
                         <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-medium border border-blue-100 shrink-0">{a.type}</span>
                       </div>

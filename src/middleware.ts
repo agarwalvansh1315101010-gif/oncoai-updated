@@ -16,7 +16,7 @@ export async function middleware(req: NextRequest) {
             const { payload } = await jwtVerify(token, secret)
             const role = (payload.role as string).toLowerCase()
             return NextResponse.redirect(new URL(`/${role}/dashboard`, req.url))
-        } catch (e) {
+        } catch {
             // invalid token, continue to login
         }
     }
@@ -48,7 +48,7 @@ export async function middleware(req: NextRequest) {
       }
 
       return NextResponse.next()
-    } catch (err) {
+    } catch {
       return NextResponse.redirect(new URL('/login', req.url))
     }
   }

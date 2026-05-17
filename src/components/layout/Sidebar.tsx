@@ -1,16 +1,16 @@
 'use client'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { 
   LayoutDashboard, FileText, MessageSquare, Calendar, 
-  Brain, LogOut, Heart, User, ChevronRight, Bell 
+  Brain, LogOut, Heart, User, ChevronRight, Sparkles 
 } from 'lucide-react'
 
 const patientNav = [
   { href: '/patient/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/patient/dashboard?tab=documents', label: 'My Documents', icon: FileText },
   { href: '/patient/dashboard?tab=ai-report', label: 'AI Report', icon: Brain },
+  { href: '/patient/dashboard?tab=recommendations', label: 'AI Recommendations', icon: Sparkles },
   { href: '/patient/dashboard?tab=chat', label: 'Chat with Doctor', icon: MessageSquare },
   { href: '/patient/dashboard?tab=appointments', label: 'Appointments', icon: Calendar },
 ]
@@ -39,11 +39,6 @@ export function Sidebar({ role, firstName, lastName, email, activeTab, onTabChan
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/login')
-  }
-
-  const tabMap: Record<string, string> = {
-    '/patient/dashboard': 'overview',
-    '/doctor/dashboard': 'overview',
   }
 
   return (

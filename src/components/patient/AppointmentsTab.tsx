@@ -18,7 +18,7 @@ interface AppointmentsTabProps {
   onBook: (data: { scheduledAt: string; type: string; notes: string }) => Promise<void>
 }
 
-export function AppointmentsTab({ appointments, doctorId, onBook }: AppointmentsTabProps) {
+export function AppointmentsTab({ appointments, onBook }: AppointmentsTabProps) {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ scheduledAt: '', type: 'VIDEO', notes: '' })
   const [booking, setBooking] = useState(false)
@@ -123,7 +123,7 @@ export function AppointmentsTab({ appointments, doctorId, onBook }: Appointments
                       <Clock className="w-3 h-3" />{format(new Date(appt.scheduledAt), 'h:mm a')}
                     </span>
                   </div>
-                  {appt.notes && <p className="text-xs text-slate-400 mt-1 italic">"{appt.notes}"</p>}
+                  {appt.notes && <p className="text-xs text-slate-400 mt-1 italic">&quot;{appt.notes}&quot;</p>}
                 </div>
                 <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-medium border border-blue-100 shrink-0">
                   {appt.status}

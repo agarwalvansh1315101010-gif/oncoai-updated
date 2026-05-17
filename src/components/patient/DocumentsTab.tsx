@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { FileText, Image, File, Download, Trash2 } from 'lucide-react'
+import { FileText, Image as ImageIcon, File, Download } from 'lucide-react'
 
 interface Document {
   id: string
@@ -12,7 +12,7 @@ interface Document {
 
 function getFileIcon(fileType: string) {
   if (fileType === 'application/pdf') return <FileText className="w-5 h-5 text-red-500" />
-  if (fileType.startsWith('image/')) return <Image className="w-5 h-5 text-blue-500" />
+  if (fileType.startsWith('image/')) return <ImageIcon className="w-5 h-5 text-blue-500" />
   return <File className="w-5 h-5 text-slate-500" />
 }
 

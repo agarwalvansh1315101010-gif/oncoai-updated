@@ -6,19 +6,35 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
 import { DocumentsTab } from '@/components/patient/DocumentsTab'
 import { AiReportTab } from '@/components/patient/AiReportTab'
+import { AiRecommendationsTab } from '@/components/patient/AiRecommendationsTab'
 import { ChatTab } from '@/components/patient/ChatTab'
 import { AppointmentsTab } from '@/components/patient/AppointmentsTab'
-import { FileText, MessageSquare, Calendar, Brain, TrendingUp, Shield } from 'lucide-react'
+import { FileText, MessageSquare, Calendar, Brain, Shield } from 'lucide-react'
+
+interface PatientProfile {
+  firstName: string;
+  lastName: string;
+  consentRecord?: { id: string };
+  documents?: any[];
+  aiReports?: any[];
+  queries?: any[];
+  appointments?: any[];
+  assignedDoctor?: { lastName: string };
+  assignedDoctorId?: string;
+  latestInsight?: string;
+}
 
 export default function PatientDashboard() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<PatientProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
   const [consentAgreed, setConsentAgreed] = useState(false)
 
-  useEffect(() => { fetchProfile() }, [])
+  useEffect(() => {
+    fetchProfile()
+  }, [])
 
   const fetchProfile = async () => {
     try {
@@ -118,6 +134,7 @@ export default function PatientDashboard() {
     overview: { title: `Welcome back, ${profile?.firstName}`, subtitle: 'Here\'s your health overview' },
     documents: { title: 'My Medical Documents', subtitle: 'Upload and manage your medical records securely' },
     'ai-report': { title: 'AI Analysis Report', subtitle: 'AI-powered preliminary analysis of your records' },
+    recommendations: { title: 'AI Clinical Recommendations', subtitle: 'Clinical pathways, diet, and clinic matches mapped by vectors' },
     chat: { title: 'Chat with Your Doctor', subtitle: 'Communicate securely with your assigned physician' },
     appointments: { title: 'My Appointments', subtitle: 'Schedule and manage consultations' },
   }
@@ -139,6 +156,28 @@ export default function PatientDashboard() {
         <main className="flex-1 overflow-y-auto p-8">
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-fade-in">
+              {/* AI Patient Insight Banner */}
+              {profile?.latestInsight && (
+                <div className="bg-gradient-to-r from-pink-500/10 via-rose-500/10 to-red-500/10 border border-pink-500/20 rounded-3xl p-6 relative overflow-hidden animate-slide-up flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-pink-500/5 rounded-full blur-2xl pointer-events-none" />
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-100 text-pink-700 text-xs font-black">
+                      <Brain className="w-3.5 h-3.5 animate-pulse" />
+                      AI PERSONALIZED INSIGHT
+                    </div>
+                    <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                      {profile.latestInsight}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setActiveTab('ai-report')}
+                    className="flex-shrink-0 px-4 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-black transition-all hover:scale-[1.02] shadow-sm shadow-pink-500/10"
+                  >
+                    View AI Report
+                  </button>
+                </div>
+              )}
+
               {/* Metric Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {metrics.map((m) => (
@@ -187,13 +226,13 @@ export default function PatientDashboard() {
               </div>
 
               {/* Recent Activity */}
-              {profile?.queries?.length > 0 && (
+              {(profile?.queries?.length ?? 0) > 0 && (
                 <div className="medical-card overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100">
                     <h3 className="text-sm font-bold text-slate-800">Recent Questions</h3>
                   </div>
                   <div className="divide-y divide-slate-50">
-                    {profile.queries.slice(0, 3).map((q: any) => (
+                    {profile?.queries?.slice(0, 3).map((q: { id: string; subject: string; encryptedMessage: string; status: string }) => (
                       <div key={q.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setActiveTab('chat')}>
                         <div>
                           <p className="text-sm font-medium text-slate-700">{q.subject}</p>
@@ -211,6 +250,7 @@ export default function PatientDashboard() {
           )}
           {activeTab === 'documents' && <DocumentsTab documents={profile?.documents || []} onUpload={handleUpload} uploading={false} />}
           {activeTab === 'ai-report' && <AiReportTab reports={profile?.aiReports || []} />}
+          {activeTab === 'recommendations' && <AiRecommendationsTab reports={profile?.aiReports || []} />}
           {activeTab === 'chat' && <ChatTab queries={profile?.queries || []} onSendMessage={handleSendMessage} />}
           {activeTab === 'appointments' && <AppointmentsTab appointments={profile?.appointments || []} doctorId={profile?.assignedDoctorId} onBook={handleBookAppointment} />}
         </main>

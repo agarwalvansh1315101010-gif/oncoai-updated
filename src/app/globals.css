@@ -85,15 +85,16 @@
   }
 
   .sidebar-nav-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer;
+    @apply flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 ease-out cursor-pointer hover:translate-x-1;
   }
 
   .sidebar-nav-item.active {
-    @apply bg-white/15 text-white;
+    background: linear-gradient(90deg, rgba(236, 72, 153, 0.15) 0%, rgba(20, 184, 166, 0.05) 100%);
+    @apply text-white border-l-4 border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.12)] font-black translate-x-1.5;
   }
 
   .sidebar-nav-item:not(.active) {
-    @apply text-slate-300 hover:bg-white/10 hover:text-white;
+    @apply text-slate-400 hover:bg-white/5 hover:text-white;
   }
 
   .status-badge {

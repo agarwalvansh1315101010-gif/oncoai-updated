@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { Brain, AlertTriangle, CheckCircle, Clock, ChevronDown } from 'lucide-react'
+import { Brain, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 
 interface AiReport {
   id: string
@@ -85,7 +85,7 @@ export function AiReportTab({ reports }: { reports: AiReport[] }) {
               {/* Doctor Notes */}
               {report.doctorNotes && (
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Doctor's Notes</h3>
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Doctor&apos;s Notes</h3>
                   <div className="bg-green-50 rounded-xl p-4 border border-green-100">
                     <p className="text-sm text-green-800 leading-relaxed">{report.doctorNotes}</p>
                   </div>
