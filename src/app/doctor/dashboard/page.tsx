@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
@@ -9,6 +9,8 @@ import {
   Users, FileText, MessageSquare, Calendar, Brain, Send,
   ChevronRight, AlertTriangle, Clock, Video, MapPin, User, Bot
 } from 'lucide-react'
+
+// ... interfaces ... (unchanged)
 
 interface DoctorProfile {
   firstName: string;
@@ -88,18 +90,18 @@ export default function DoctorDashboard() {
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({})
   const [savingNotes, setSavingNotes] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const res = await fetch('/api/doctor/patients')
       if (res.status === 401) { router.push('/login'); return }
       setData(await res.json())
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
-  }
+  }, [router])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const saveReportNotes = async (reportId: string) => {
     const notes = editingNotes[reportId]

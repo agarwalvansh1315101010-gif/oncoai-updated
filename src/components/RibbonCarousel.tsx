@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shield, Gift, Heart, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Shield, Heart, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface Slide {

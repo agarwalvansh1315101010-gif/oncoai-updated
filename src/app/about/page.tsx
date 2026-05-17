@@ -6,7 +6,6 @@ import SocialMediaStrip from '@/components/SocialMediaStrip';
 import RibbonCarousel from '@/components/RibbonCarousel';
 import Popups from '@/components/Popups';
 import { Shield, Heart, Award, Users, BookOpen } from 'lucide-react';
-import Link from 'next/link';
 
 export default function AboutPage() {
   return (
@@ -60,7 +59,7 @@ export default function AboutPage() {
               <div className="absolute top-0 right-0 w-24 h-24 bg-pink-500/10 rounded-full blur-2xl" />
               <div className="space-y-6">
                 <p className="text-lg italic text-slate-300 leading-relaxed font-medium">
-                  "Our collaboration with SocialGoodAI represents a massive step forward for cancer treatment accessibility in India. By utilizing secure AI alongside direct clinical oversight, we dramatically shorten the path to accurate treatment plans."
+                  {"\"Our collaboration with SocialGoodAI represents a massive step forward for cancer treatment accessibility in India. By utilizing secure AI alongside direct clinical oversight, we dramatically shorten the path to accurate treatment plans.\""}
                 </p>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-slate-800 border border-pink-500 flex items-center justify-center font-black text-pink-500 text-lg">

@@ -135,7 +135,7 @@ export default function Home() {
             </div>
 
             <blockquote className="text-xl md:text-3xl font-medium italic text-slate-200 leading-relaxed">
-              "We have engineered SocialGoodAI to ensure no cancer patient is left in confusion. By using advanced technology alongside a rigorous review by our oncology specialists at IMS-BHU, we build absolute trust."
+              {"\"We have engineered SocialGoodAI to ensure no cancer patient is left in confusion. By using advanced technology alongside a rigorous review by our oncology specialists at IMS-BHU, we build absolute trust.\""}
             </blockquote>
 
             <div className="flex flex-col items-center space-y-2">

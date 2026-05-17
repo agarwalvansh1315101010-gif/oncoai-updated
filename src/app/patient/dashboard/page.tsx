@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
@@ -11,20 +11,64 @@ import { ChatTab } from '@/components/patient/ChatTab'
 import { AppointmentsTab } from '@/components/patient/AppointmentsTab'
 import { FileText, MessageSquare, Calendar, Brain, Shield } from 'lucide-react'
 
+interface DocumentItem {
+  id: string
+  fileName: string
+  fileUrl: string
+  fileType: string
+  fileSize: number
+  uploadedAt: string
+}
+
+interface AiReportItem {
+  id: string
+  createdAt: string
+  summary: string
+  findings: string
+  recommendations: string
+  doctorNotes?: string
+  riskLevel: string
+  status: string
+}
+
+interface QueryItem {
+  id: string
+  createdAt: string
+  subject: string
+  status: string
+  encryptedMessage: string
+  responses: Array<{
+    id: string
+    encryptedMessage: string
+    createdAt: string
+    doctor: { firstName: string; lastName: string }
+  }>
+}
+
+interface AppointmentItem {
+  id: string
+  createdAt: string
+  scheduledAt: string
+  status: string
+  type: string
+  notes?: string
+  doctor: { firstName: string; lastName: string; specialization: string }
+}
+
 interface PatientProfile {
   firstName: string;
   lastName: string;
   consentRecord?: { id: string };
-  documents?: any[];
-  aiReports?: any[];
-  queries?: any[];
-  appointments?: any[];
+  documents?: DocumentItem[];
+  aiReports?: AiReportItem[];
+  queries?: QueryItem[];
+  appointments?: AppointmentItem[];
   assignedDoctor?: { lastName: string };
   assignedDoctorId?: string;
   latestInsight?: string;
 }
 
-export default function PatientDashboard() {
+function PatientDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [profile, setProfile] = useState<PatientProfile | null>(null)
@@ -32,18 +76,18 @@ export default function PatientDashboard() {
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
   const [consentAgreed, setConsentAgreed] = useState(false)
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await fetch('/api/patient/profile')
       if (res.status === 401) { router.push('/login'); return }
       setProfile(await res.json())
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
-  }
+  }, [router])
+
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
 
   const submitConsent = async () => {
     if (!consentAgreed) return
@@ -232,7 +276,7 @@ export default function PatientDashboard() {
                     <h3 className="text-sm font-bold text-slate-800">Recent Questions</h3>
                   </div>
                   <div className="divide-y divide-slate-50">
-                    {profile?.queries?.slice(0, 3).map((q: { id: string; subject: string; encryptedMessage: string; status: string }) => (
+                    {profile?.queries?.slice(0, 3).map((q: QueryItem) => (
                       <div key={q.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setActiveTab('chat')}>
                         <div>
                           <p className="text-sm font-medium text-slate-700">{q.subject}</p>
@@ -256,5 +300,13 @@ export default function PatientDashboard() {
         </main>
       </div>
     </div>
+  )
+}
+
+export default function PatientDashboard() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-400 font-medium">Loading Dashboard...</div>}>
+      <PatientDashboardContent />
+    </Suspense>
   )
 }

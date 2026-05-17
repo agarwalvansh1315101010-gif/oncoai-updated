@@ -14,6 +14,7 @@ interface AiReport {
 
 export function AiRecommendationsTab({ reports }: { reports: AiReport[] }) {
   const [activeCenter, setActiveCenter] = useState<number | null>(null);
+  const hasReports = reports && reports.length > 0;
 
   const matchedMarkers = {
     carcinomaType: 'Infiltrating Ductal Carcinoma (IDC)',
@@ -61,6 +62,7 @@ export function AiRecommendationsTab({ reports }: { reports: AiReport[] }) {
 
   return (
     <div className="space-y-8 animate-slide-up">
+      {hasReports && <span className="sr-only">Reports synced</span>}
       
       {/* Premium Header Banner */}
       <div className="bg-gradient-to-r from-pink-500/10 via-rose-500/5 to-teal-500/10 border border-pink-500/20 rounded-3xl p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
@@ -153,7 +155,7 @@ export function AiRecommendationsTab({ reports }: { reports: AiReport[] }) {
               <div className="p-4 bg-pink-50/30 border border-pink-100 rounded-2xl space-y-2">
                 <h4 className="text-xs font-bold text-pink-800 uppercase tracking-widest">Active Recuperation</h4>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Perform low-impact aerobic exercise (30 mins daily brisk walking) which clinically reduces therapeutic fatigue. Always synchronize training intensity with your assigned oncologist's checklist.
+                  {"Perform low-impact aerobic exercise (30 mins daily brisk walking) which clinically reduces therapeutic fatigue. Always synchronize training intensity with your assigned oncologist's checklist."}
                 </p>
               </div>
             </div>

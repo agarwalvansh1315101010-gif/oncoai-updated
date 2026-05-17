@@ -1,15 +1,55 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { Shield, Users, Activity, LogOut, Check, Sparkles, Key, AlertCircle } from 'lucide-react'
 
+interface AdminUser {
+  id: string
+  email: string
+  role: string
+  createdAt: string
+}
+
+interface AdminPatient {
+  id: string
+  firstName: string
+  lastName: string
+  user: {
+    email: string
+    createdAt: string
+  }
+  assignedDoctor?: {
+    id: string
+    lastName: string
+  }
+}
+
+interface AdminDoctor {
+  id: string
+  firstName: string
+  lastName: string
+  specialization: string
+}
+
+interface AdminAuditLog {
+  id: string
+  createdAt: string
+  action: string
+  resourceType: string
+  ipAddress: string | null
+  details?: string
+  user?: {
+    email: string
+  }
+}
+
 interface AdminData {
-  users: any[]
-  patients: any[]
-  doctors: any[]
-  auditLogs: any[]
+  users: AdminUser[]
+  patients: AdminPatient[]
+  doctors: AdminDoctor[]
+  auditLogs: AdminAuditLog[]
 }
 
 export default function AdminDashboard() {
@@ -19,18 +59,18 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [assigningPatient, setAssigningPatient] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/data')
       if (res.status === 401 || res.status === 403) { router.push('/login'); return }
       setData(await res.json())
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
-  }
+  }, [router])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -182,7 +222,7 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/60">
-                      {auditLogs.slice(0, 8).map((log: any) => (
+                      {auditLogs.slice(0, 8).map((log: AdminAuditLog) => (
                         <tr key={log.id} className="hover:bg-slate-800/20 transition-colors">
                           <td className="px-6 py-4 text-slate-400 font-mono">{format(new Date(log.createdAt), 'yyyy-MM-dd HH:mm:ss')}</td>
                           <td className="px-6 py-4 font-semibold text-slate-200">{log.user?.email || 'System'}</td>
@@ -209,7 +249,7 @@ export default function AdminDashboard() {
                 <p className="text-xs text-slate-400 mt-1 font-medium">Assign unassigned patient cases to designated oncology specialists.</p>
               </div>
               <div className="divide-y divide-slate-800/60 text-left">
-                {patients.map((p: any) => (
+                {patients.map((p: AdminPatient) => (
                   <div key={p.id} className="p-6 flex items-center justify-between hover:bg-slate-800/10 transition-colors relative">
                     <div className="space-y-1">
                       <p className="text-sm font-bold text-white">{p.firstName} {p.lastName}</p>
@@ -234,7 +274,7 @@ export default function AdminDashboard() {
                         <div className="absolute right-6 top-16 w-72 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-20 animate-fade-in">
                           <div className="p-3.5 bg-slate-950 border-b border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-wider">Select Specialist</div>
                           <div className="max-h-48 overflow-y-auto divide-y divide-slate-800/40">
-                            {doctors.map((d: any) => (
+                            {doctors.map((d: AdminDoctor) => (
                               <button 
                                 key={d.id} 
                                 onClick={() => assignDoctor(p.id, d.id)} 
@@ -274,7 +314,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {users.map((u: any) => (
+                    {users.map((u: AdminUser) => (
                       <tr key={u.id} className="hover:bg-slate-800/20 transition-colors">
                         <td className="px-6 py-4 font-semibold text-white">{u.email}</td>
                         <td className="px-6 py-4">
@@ -311,7 +351,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {auditLogs.map((log: any) => (
+                    {auditLogs.map((log: AdminAuditLog) => (
                       <tr key={log.id} className="hover:bg-slate-800/20 transition-colors">
                         <td className="px-6 py-4 text-slate-400 font-mono">{format(new Date(log.createdAt), 'yyyy-MM-dd HH:mm:ss')}</td>
                         <td className="px-6 py-4 font-semibold text-slate-200">{log.user?.email || 'System'}</td>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Shield, Sparkles, Activity, Heart, RefreshCw } from 'lucide-react';
+import { Shield, Sparkles, Activity, RefreshCw } from 'lucide-react';
 
 export default function ThreeDMedicalScan() {
   const [rotate, setRotate] = useState({ x: 12, y: -15 });

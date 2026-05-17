@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import SocialMediaStrip from '@/components/SocialMediaStrip';
 import RibbonCarousel from '@/components/RibbonCarousel';
 import Popups from '@/components/Popups';
-import { BookOpen, HelpCircle, Heart, Star, ChevronRight } from 'lucide-react';
+import { Heart, Star, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CancerInfoPage() {
